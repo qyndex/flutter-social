@@ -1,47 +1,142 @@
-class User {
+/// Data models for the social app.
+///
+/// Each model has a [fromJson] factory for Supabase row deserialization
+/// and a [toJson] method for inserts/updates.
+
+class AppProfile {
   final String id;
   final String username;
-  final String displayName;
+  final String fullName;
   final String bio;
   final String avatarUrl;
+  final DateTime createdAt;
+
+  // Computed counts (filled by queries with aggregates)
   final int followerCount;
   final int followingCount;
   final int postCount;
-  final bool isFollowing;
 
-  const User({
+  const AppProfile({
     required this.id,
     required this.username,
-    required this.displayName,
-    required this.bio,
-    required this.avatarUrl,
-    required this.followerCount,
-    required this.followingCount,
-    required this.postCount,
-    required this.isFollowing,
+    this.fullName = '',
+    this.bio = '',
+    this.avatarUrl = '',
+    required this.createdAt,
+    this.followerCount = 0,
+    this.followingCount = 0,
+    this.postCount = 0,
   });
+
+  factory AppProfile.fromJson(Map<String, dynamic> json) {
+    return AppProfile(
+      id: json['id'] as String,
+      username: json['username'] as String,
+      fullName: (json['full_name'] as String?) ?? '',
+      bio: (json['bio'] as String?) ?? '',
+      avatarUrl: (json['avatar_url'] as String?) ?? '',
+      createdAt: DateTime.parse(json['created_at'] as String),
+      followerCount: (json['follower_count'] as int?) ?? 0,
+      followingCount: (json['following_count'] as int?) ?? 0,
+      postCount: (json['post_count'] as int?) ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'username': username,
+        'full_name': fullName,
+        'bio': bio,
+        'avatar_url': avatarUrl,
+      };
 }
 
 class Post {
   final String id;
-  final User author;
+  final String authorId;
+  final AppProfile? author;
   final String content;
   final String? imageUrl;
+  final int likesCount;
   final DateTime createdAt;
-  final int likeCount;
-  final int commentCount;
+
+  // Client-side state
   final bool isLiked;
+  final int commentCount;
 
   const Post({
     required this.id,
-    required this.author,
+    required this.authorId,
+    this.author,
     required this.content,
     this.imageUrl,
+    this.likesCount = 0,
     required this.createdAt,
-    required this.likeCount,
-    required this.commentCount,
-    required this.isLiked,
+    this.isLiked = false,
+    this.commentCount = 0,
   });
+
+  factory Post.fromJson(Map<String, dynamic> json, {bool isLiked = false, int commentCount = 0}) {
+    final authorData = json['profiles'];
+    return Post(
+      id: json['id'] as String,
+      authorId: json['author_id'] as String,
+      author: authorData != null ? AppProfile.fromJson(authorData as Map<String, dynamic>) : null,
+      content: json['content'] as String,
+      imageUrl: json['image_url'] as String?,
+      likesCount: (json['likes_count'] as int?) ?? 0,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      isLiked: isLiked,
+      commentCount: commentCount,
+    );
+  }
+
+  Post copyWith({
+    bool? isLiked,
+    int? likesCount,
+    int? commentCount,
+  }) {
+    return Post(
+      id: id,
+      authorId: authorId,
+      author: author,
+      content: content,
+      imageUrl: imageUrl,
+      likesCount: likesCount ?? this.likesCount,
+      createdAt: createdAt,
+      isLiked: isLiked ?? this.isLiked,
+      commentCount: commentCount ?? this.commentCount,
+    );
+  }
+}
+
+class Comment {
+  final String id;
+  final String postId;
+  final String authorId;
+  final AppProfile? author;
+  final String content;
+  final DateTime createdAt;
+
+  const Comment({
+    required this.id,
+    required this.postId,
+    required this.authorId,
+    this.author,
+    required this.content,
+    required this.createdAt,
+  });
+
+  factory Comment.fromJson(Map<String, dynamic> json) {
+    final authorData = json['profiles'];
+    return Comment(
+      id: json['id'] as String,
+      postId: json['post_id'] as String,
+      authorId: json['author_id'] as String,
+      author: authorData != null ? AppProfile.fromJson(authorData as Map<String, dynamic>) : null,
+      content: json['content'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+    );
+  }
 }
 
 class Message {
@@ -62,7 +157,7 @@ class Message {
 
 class Conversation {
   final String id;
-  final User participant;
+  final AppProfile participant;
   final String lastMessage;
   final DateTime lastMessageAt;
   final int unreadCount;
