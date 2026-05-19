@@ -10,6 +10,12 @@ class PostCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final author = post.author;
+    final authorName = author?.fullName.isNotEmpty == true
+        ? author!.fullName
+        : (author?.username ?? 'Unknown');
+    final authorHandle = author?.username ?? 'unknown';
+    final authorAvatar = author?.avatarUrl ?? '';
     return InkWell(
       onTap: () => context.push('/post/${post.id}'),
       child: Padding(
@@ -20,10 +26,15 @@ class PostCard extends ConsumerWidget {
             Row(
               children: [
                 GestureDetector(
-                  onTap: () => context.push('/user/${post.author.id}'),
+                  onTap: () => context.push('/user/${post.authorId}'),
                   child: CircleAvatar(
                     radius: 20,
-                    backgroundImage: NetworkImage(post.author.avatarUrl),
+                    backgroundImage: authorAvatar.isNotEmpty
+                        ? NetworkImage(authorAvatar)
+                        : null,
+                    child: authorAvatar.isEmpty
+                        ? const Icon(Icons.person)
+                        : null,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -31,9 +42,9 @@ class PostCard extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(post.author.displayName,
+                      Text(authorName,
                           style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text('@${post.author.username}',
+                      Text('@$authorHandle',
                           style: Theme.of(context).textTheme.bodySmall),
                     ],
                   ),
@@ -58,7 +69,7 @@ class PostCard extends ConsumerWidget {
                     color: post.isLiked ? Colors.red : null),
                 onPressed: () => ref.read(feedProvider.notifier).toggleLike(post.id),
               ),
-              Text('${post.likeCount}'),
+              Text('${post.likesCount}'),
               const SizedBox(width: 16),
               const Icon(Icons.chat_bubble_outline, size: 20),
               const SizedBox(width: 4),

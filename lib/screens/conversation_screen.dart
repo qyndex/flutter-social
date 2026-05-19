@@ -66,7 +66,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             backgroundImage: NetworkImage(conv.participant.avatarUrl),
           ),
           const SizedBox(width: 8),
-          Text(conv.participant.displayName),
+          Text(conv.participant.fullName.isNotEmpty ? conv.participant.fullName : conv.participant.username),
         ]),
       ),
       body: Column(

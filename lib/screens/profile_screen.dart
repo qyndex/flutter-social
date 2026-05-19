@@ -9,7 +9,7 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final feed = ref.watch(feedProvider);
-    final myPosts = feed.where((p) => p.author.id == user.id).toList();
+    final myPosts = feed.where((p) => p.authorId == user.id).toList();
 
     return Scaffold(
       body: CustomScrollView(
@@ -48,7 +48,7 @@ class ProfileScreen extends ConsumerWidget {
                     OutlinedButton(onPressed: () {}, child: const Text('Edit Profile')),
                   ]),
                   const SizedBox(height: 12),
-                  Text(user.displayName,
+                  Text(user.fullName.isNotEmpty ? user.fullName : user.username,
                       style: Theme.of(context).textTheme.titleLarge),
                   Text('@${user.username}',
                       style: Theme.of(context).textTheme.bodyMedium),

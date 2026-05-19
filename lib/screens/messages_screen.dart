@@ -32,7 +32,7 @@ class MessagesScreen extends ConsumerWidget {
               ),
             ),
             title: Row(children: [
-              Text(conv.participant.displayName,
+              Text(conv.participant.fullName.isNotEmpty ? conv.participant.fullName : conv.participant.username,
                   style: TextStyle(
                     fontWeight: conv.unreadCount > 0
                         ? FontWeight.bold
